@@ -433,6 +433,10 @@ public extension UIView {
             wrapperView.layer.shadowOffset = style.shadowOffset
         }
         
+        
+        let maxWrapperWidth = self.bounds.size.width * style.maxWidthPercentage
+        let maxWrapperHeight = self.bounds.size.height * style.maxHeightPercentage
+        
         if let image = image {
             imageView = UIImageView(image: image)
             imageView?.contentMode = .scaleAspectFit
@@ -447,6 +451,8 @@ public extension UIView {
             imageRect.size.width = imageView.bounds.size.width
             imageRect.size.height = imageView.bounds.size.height
         }
+        
+        let maxTextSize = CGSize(width: maxWrapperWidth - (imageRect.origin.x + imageRect.size.width) - (style.horizontalPadding * 2), height: maxWrapperHeight)
 
         if let title = title {
             titleLabel = UILabel()
@@ -457,12 +463,11 @@ public extension UIView {
             titleLabel?.textColor = style.titleColor
             titleLabel?.backgroundColor = UIColor.clear
             titleLabel?.text = title;
+            let titleSize = titleLabel?.sizeThatFits(maxTextSize)
             
-            let maxTitleSize = CGSize(width: (self.bounds.size.width * style.maxWidthPercentage) - imageRect.size.width, height: self.bounds.size.height * style.maxHeightPercentage)
-            let titleSize = titleLabel?.sizeThatFits(maxTitleSize)
             if let titleSize = titleSize {
                 titleLabel?.frame = CGRect(x: 0.0, y: 0.0, width: titleSize.width, height: titleSize.height)
-            }
+            }                        
         }
         
         if let message = message {
@@ -489,7 +494,7 @@ public extension UIView {
         if let titleLabel = titleLabel {
             titleRect.origin.x = imageRect.origin.x + imageRect.size.width + style.horizontalPadding
             titleRect.origin.y = style.verticalPadding
-            titleRect.size.width = titleLabel.bounds.size.width
+            titleRect.size.width = style.alwaysOnMaxWidth ? maxTextSize.width : titleLabel.bounds.size.width
             titleRect.size.height = titleLabel.bounds.size.height
         }
         
@@ -498,8 +503,9 @@ public extension UIView {
         if let messageLabel = messageLabel {
             messageRect.origin.x = imageRect.origin.x + imageRect.size.width + style.horizontalPadding
             messageRect.origin.y = titleRect.origin.y + titleRect.size.height + style.verticalPadding
-            messageRect.size.width = messageLabel.bounds.size.width
+            messageRect.size.width = style.alwaysOnMaxWidth ? maxTextSize.width : messageLabel.bounds.size.width
             messageRect.size.height = messageLabel.bounds.size.height
+            
         }
         
         let longerWidth = max(titleRect.size.width, messageRect.size.width)
@@ -545,6 +551,8 @@ public extension UIView {
 public struct ToastStyle {
 
     public init() {}
+    
+    public var alwaysOnMaxWidth: Bool = true
     
     /**
      The background color. Default is `.black` at 80% opacity.
